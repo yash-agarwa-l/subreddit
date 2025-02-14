@@ -6,7 +6,7 @@ const postSchema=new mongoose.Schema({
         type: String,
         required: true
     },
-    content:{
+    description:{
         type: String
     },
     image:{
@@ -44,4 +44,4 @@ const postSchema=new mongoose.Schema({
     timestamps:true
 })
 
-export const post=mongoose.model("post",postSchema)
+export const Post=mongoose.model("post",postSchema)

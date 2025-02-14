@@ -21,7 +21,7 @@ const getAccessAndRefreshToken=async(userId)=>{
  
      return {accessToken,refreshToken}
    } catch (error) {
-    console.log(error.message)
+    // console.log(error.message)
     throw new ApiError(500,"something went wrong")
    }
 }
@@ -84,7 +84,9 @@ const loginUser=asyncHandler(async(req,res)=>{
         throw new ApiError(401,"invalid")
     }
 
-    const {accessToken,refreshToken}=getAccessAndRefreshToken(user._id)
+    const {accessToken,refreshToken}=await getAccessAndRefreshToken(user._id)
+    
+    
     const loggedinUser=await User.findById(user._id).select("-password -refreshToken")
 
     res.status(200).cookie("accessToken",accessToken,options).cookie("refreshToken",refreshToken,options).json(new ApiResponse(200,"user logged in",{
@@ -109,7 +111,7 @@ const logoutUser=asyncHandler(async (req,res)=> {
         }
    )
 
-   res.stauts(200).clearcookie("accessToken",options).clearcookie("refreshToken",options).json(new ApiResponse(200,"user looged out",{}))
+   res.status(200).clearCookie("accessToken",options).clearCookie("refreshToken",options).json(new ApiResponse(200,"user looged out",{}))
 
 })
 
