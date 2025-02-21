@@ -17,11 +17,6 @@ export const s3Client = new S3Client({
 
 
 export const putObject = asyncHandler(async(req,res)=>{
-    if (!req.user || !req.user.userid) {
-        return res.status(401).json(new ApiResponse(401, "Unauthorized: User not authenticated", {}));
-    }
-
-
     const user = req.user;
     const fileName = `image-${user.userid}-${Date.now()}`;
 

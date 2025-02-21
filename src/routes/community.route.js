@@ -5,8 +5,8 @@ import { verifyJWT } from "../middlewares/auth.middleware.js";
 
 const communityRouter = Router();
 
-communityRouter.post("/", createCommunity);
-communityRouter.get("/", getAllCommunities);
+communityRouter.post("/",verifyJWT, createCommunity);
+communityRouter.get("/", verifyJWT,getAllCommunities);
 communityRouter.put("/:communityId", verifyJWT, updateCommunity);
 communityRouter.delete("/:communityId", verifyJWT, deleteCommunity);
 

@@ -17,6 +17,6 @@ app.use("/api/users",userRouter)
 app.use("/api/posts",postRouter)
 app.use("/api/upload",uploadRouter)
 app.use("/api/posts/comment",commentRouter)
-app.use("/api/posts/community",communityRouter)
+app.use("/api/community",communityRouter)
 
 export {app}
