@@ -17,8 +17,8 @@ export const s3Client = new S3Client({
 
 
 export const putObject = asyncHandler(async(req,res)=>{
-    const user = req.user;
-    const fileName = `image-${user.userid}-${Date.now()}`;
+
+    const fileName = `image-${req.user._id}-${Date.now()}`;
 
     const putCommand = new PutObjectCommand({
         Bucket: process.env.BUCKET_NAME,
