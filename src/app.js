@@ -9,8 +9,10 @@ app.use(cookieParser())
 
 import userRouter from "./routes/user.route.js";
 import postRouter from "./routes/post.route.js";
+import uploadRouter from "./routes/upload.route.js";
 
 app.use("/api/users",userRouter)
 app.use("/api/posts",postRouter)
+app.use("/api/upload",uploadRouter)
 
 export {app}
