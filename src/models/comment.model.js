@@ -10,7 +10,7 @@ const commentSchema=new Schema({
         type: Schema.Types.ObjectId,
         ref: "User", required: true
     },
-    content: {
+    text: {
         type: String,
         required: true
     },
