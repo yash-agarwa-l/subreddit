@@ -31,6 +31,14 @@ const userSchema = new mongoose.Schema(
         },
         refreshToken: {
             type: String
+        },
+        upvotedPosts:{
+            type:mongoose.Schema.Types.ObjectId,
+            ref:"Post"
+        },
+        upvotedPosts:{
+            type:mongoose.Schema.Types.ObjectId,
+            ref:"Post"
         }
 
     },
