@@ -6,7 +6,7 @@ import { ApiError } from "../utils/apiError.js";
 import { User } from "../models/user.model.js";
 
 
-const upvotePost = asyncHandler(async (req, res) => {
+export const upvotePost = asyncHandler(async (req, res) => {
     const post = await Post.findById(req.params.id);
     if (!post) {
         throw new ApiError(404, "Post not found");
@@ -32,7 +32,7 @@ const upvotePost = asyncHandler(async (req, res) => {
 });
 
 
-const downvotePost = asyncHandler(async (req, res) => {
+export const downvotePost = asyncHandler(async (req, res) => {
     const post = await Post.findById(req.params.id);
     if (!post) {
         throw new ApiError(404, "Post not found");

@@ -29,7 +29,6 @@ const createPost = asyncHandler(async (req, res) => {
 
             imageUrl = await getSignedUrl(s3Client, getCommand, { expiresIn: 3600 });
 
-            // Store the image URL in the user's model
             await User.findByIdAndUpdate(userId, { $set: { profileImage: imageUrl } });
         } catch (error) {
             throw new ApiError(500, "Error generating signed URL for image");
@@ -113,38 +112,7 @@ const deletePost = asyncHandler(async (req, res) => {
     return res.status(200).json(new ApiResponse(200, 'Post deleted successfully'));
 });
 
-const upvotePost = asyncHandler(async (req, res) => {
-    const post = await Post.findById(req.params.id);
 
-    if (!post) {
-        throw new ApiError(404,"post not found") 
-    }
-
-    if (!post.upvotedBy.includes(req.user._id)) {
-        post.upvotedBy.push(req.user._id);
-        post.downvotedBy = post.downvotedBy.filter(id => !id.equals(req.user._id));
-    }
-
-    await post.save();
-    return res.status(200).json(new ApiResponse(200, 'Post upvoted', post));
-});
-
-const downvotePost=asyncHandler(async(req,res)=>{
-    const post=await Post.findById(req.params.id)
-    if (!post) {
-        throw new ApiError(404,"post not found") 
-    }
-
-    if(!post.downvotedBy.includes(req.user._id)){
-        post.downvotedBy.push(req.user._id);
-        post.upvotedBy=post.upvotedBy.filter(id=>!id.equals(req.user._id))
-    }
-
-    await post.save();
-    return res.status(200).json(new ApiResponse(200, 'Post downvoted', post));
-
-
-})
 
 
 export {
@@ -153,6 +121,4 @@ export {
     getPostById,
     updatePost,
     deletePost,
-    upvotePost,
-    downvotePost
 }

@@ -5,9 +5,9 @@ import {
     getPostById,
     updatePost,
     deletePost,
-    upvotePost,
-    downvotePost
 } from "../controllers/post.controller.js";
+
+import { upvotePost, downvotePost } from "../controllers/vote.controllers.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 
 const router=Router()
