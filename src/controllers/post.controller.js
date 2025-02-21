@@ -3,29 +3,58 @@ import {Community} from "../models/community.model.js"
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 import { ApiError } from "../utils/apiError.js";
+import { s3Client } from "./picures.controllers.js";
 
-const createPost=asyncHandler(async(req,res)=>{
-    const {title,description,communityId}=req.body
-    const userid=req.user._id
-    if(!title || !description || !communityId){
-        throw new ApiError(400,"all field required")
+const createPost = asyncHandler(async (req, res) => {
+    const { title, description, communityId, imagekey } = req.body;
+    const userId = req.user._id;
+
+    if (!title || !description || !communityId) {
+        throw new ApiError(400, "All fields are required");
     }
-   
+
     const community = await Community.findById(communityId);
     if (!community) {
-       throw new ApiError(404,"community not found")
+        throw new ApiError(404, "Community not found");
     }
 
-    const post=await Post.create({
+    let imageUrl = null;
+
+    if (imagekey) {
+        try {
+            const getCommand = new GetObjectCommand({
+                Bucket: process.env.BUCKET_NAME,
+                Key: `uploads/userUploads/${imagekey}`,
+            });
+
+            imageUrl = await getSignedUrl(s3Client, getCommand, { expiresIn: 3600 });
+
+            // Store the image URL in the user's model
+            await User.findByIdAndUpdate(userId, { $set: { profileImage: imageUrl } });
+        } catch (error) {
+            throw new ApiError(500, "Error generating signed URL for image");
+        }
+    }
+
+    const post = await Post.create({
         title,
         description,
-        author:userid,
-        community:communityId
-    })
-     //image uploading left
+        author: userId,
+        community: communityId,
+        imageUrl:imageUrl
+    });
 
-    return res.status(201).json(new ApiResponse(201,"Post created",post))
-})
+    return res.status(201).json(
+        new ApiResponse(201, "Post created", {
+            post,
+            signedImage: {
+                fileName: imagekey,
+                url: imageUrl,
+            },
+        })
+    );
+});
+
 
 const getAllPosts = asyncHandler(async (req, res) => {
     const posts = await Post.find()

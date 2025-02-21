@@ -16,10 +16,10 @@ const userSchema = new mongoose.Schema(
             type: String,
             required: true,
             unique: true,
-            lowecase: true,
+            lowercase: true,
             trim: true, 
         },
-        fullname: {
+        fullName: {
             type: String,
             required: true,
             trim: true, 
@@ -36,7 +36,7 @@ const userSchema = new mongoose.Schema(
             type:mongoose.Schema.Types.ObjectId,
             ref:"Post"
         },
-        upvotedPosts:{
+        downvotedPosts:{
             type:mongoose.Schema.Types.ObjectId,
             ref:"Post"
         }
@@ -72,7 +72,7 @@ userSchema.methods.generateAccessToken=function(){
         },
         process.env.ACCESS_SECRET,
         {
-            expiresIn:process.env.ACCESS_EXPIRY
+            expiresIn:process.env.ACCESS_EXPIRY|| "10d"
         }
         
     )
@@ -88,7 +88,7 @@ userSchema.methods.generateRefreshToken=function(){
         },
         process.env.REFRESH_SECRET,
         {
-            expiresIn:process.env.REFRESH_EXPIRY
+            expiresIn:process.env.REFRESH_EXPIRY|| "2d"
         }
     )
 }

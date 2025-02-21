@@ -40,6 +40,11 @@ const postSchema=new mongoose.Schema({
             ref: "Comment"
         }
     ],
+    imageUrl:[
+        {
+            type:String,
+        }
+    ]
 },{
     timestamps:true
 })
