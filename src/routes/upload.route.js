@@ -4,6 +4,6 @@ import { verifyJWT } from "../middlewares/auth.middleware.js";
 
 const router=Router();
 
-router.route("/").post(putObject);
+router.route("/").post(verifyJWT,putObject);
 
 export default router;
