@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { getAllCommunities,updateCommunity,deleteCommunity, createCommunity } from "../controllers/community.controllers";
+import { getAllCommunities,updateCommunity,deleteCommunity, createCommunity } from "../controllers/community.controllers.js";
 
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 
