@@ -40,6 +40,26 @@ const postSchema=new mongoose.Schema({
             ref: "Comment"
         }
     ],
+    imageUrl:[
+        {
+            type:String,
+        }
+    ],
+    postType: {
+        type: String,
+        required: true,
+        enum: ["generic", "community"],
+        message: "Post type must be either 'generic' or 'community'"
+    },
+    community: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Community",
+        required: function () {
+            return this.postType === "community"; 
+        }
+    },
+    
+    
 },{
     timestamps:true
 })

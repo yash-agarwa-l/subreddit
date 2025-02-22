@@ -4,34 +4,36 @@ import jwt from "jsonwebtoken";
 
 const userSchema = new mongoose.Schema(
     {
-        username: {
+        email: {
             type: String,
             required: true,
             unique: true,
             lowercase: true,
             trim: true, 
-            index: true
         },
-        email: {
-            type: String,
-            required: true,
-            unique: true,
-            lowecase: true,
-            trim: true, 
-        },
-        fullname: {
+        fullName: {
             type: String,
             required: true,
             trim: true, 
             index: true
-        },
-        password: {
-            type: String,
-            required: [true, 'Password is required']
         },
         refreshToken: {
             type: String
-        }
+        },
+        upvotedPosts:{
+            type:mongoose.Schema.Types.ObjectId,
+            ref:"Post"
+        },
+        downvotedPosts:{
+            type:mongoose.Schema.Types.ObjectId,
+            ref:"Post"
+        },
+        communities:[
+            {
+                type:mongoose.Schema.Types.ObjectId,
+                ref:"Community"
+            }
+        ]
 
     },
     {
@@ -64,7 +66,7 @@ userSchema.methods.generateAccessToken=function(){
         },
         process.env.ACCESS_SECRET,
         {
-            expiresIn:process.env.ACCESS_EXPIRY
+            expiresIn:process.env.ACCESS_EXPIRY|| "10d"
         }
         
     )
@@ -80,7 +82,7 @@ userSchema.methods.generateRefreshToken=function(){
         },
         process.env.REFRESH_SECRET,
         {
-            expiresIn:process.env.REFRESH_EXPIRY
+            expiresIn:process.env.REFRESH_EXPIRY|| "2d"
         }
     )
 }
