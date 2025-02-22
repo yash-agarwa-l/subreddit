@@ -47,7 +47,7 @@ const postSchema=new mongoose.Schema({
     ],
     isAnonymous:{
         type:Boolean,
-        default:false,
+        default:true,
     },
     postType: {
         type: String,

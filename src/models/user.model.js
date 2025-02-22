@@ -33,14 +33,15 @@ const userSchema = new mongoose.Schema(
         refreshToken: {
             type: String
         },
-        upvotedPosts:{
+        upvotedPosts:[{
             type:mongoose.Schema.Types.ObjectId,
             ref:"Post"
-        },
-        downvotedPosts:{
+        }],
+        downvotedPosts:[
+            {
             type:mongoose.Schema.Types.ObjectId,
             ref:"Post"
-        },
+        }],
         communities:[
             {
                 type:mongoose.Schema.Types.ObjectId,

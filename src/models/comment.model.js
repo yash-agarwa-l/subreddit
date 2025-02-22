@@ -14,6 +14,10 @@ const commentSchema=new Schema({
         type: String,
         required: true
     },
+    isAnonymous:{
+        type:Boolean,
+        default:true,
+    },
 },{
     timestamps:true
 });

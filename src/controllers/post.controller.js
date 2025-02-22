@@ -49,7 +49,7 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
         description,
         postType,
         community: postType === "community" ? communityId : null,
-        author: isAnonymous ? null : userId, 
+        author: userId, 
         imageUrl: imageUrls,
         isAnonymous: !!isAnonymous,
     });
@@ -72,21 +72,51 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 
 
+
 const getAllPosts = asyncHandler(async (req, res) => {
     const posts = await Post.find()
-        .populate('author', 'username')
-        .populate('community', 'name');
+        .populate('community', 'name')
+        .lean(); 
+
+    posts.forEach(post => {
+        if (post.isAnonymous) {
+            delete post.author;
+        }
+    });
 
     return res.status(200).json(new ApiResponse(200, 'Posts fetched successfully', posts));
 });
 
+const getGenericPosts = asyncHandler(async (req, res) => {
+    const posts = await Post.find({ postType: "generic" })
+        .populate("author", "username")
+        .lean(); 
+
+    if (!posts.length) {
+        throw new ApiError(404, "No generic posts found");
+    }
+
+    const sanitizedPosts = posts.map(post => {
+        if (post.isAnonymous) {
+            post.author = undefined; 
+        }
+        return post;
+    });
+
+    return res.status(200).json(new ApiResponse(200, "Generic posts fetched successfully", sanitizedPosts));
+});
+
+
 const getPostById = asyncHandler(async (req, res) => {
     const post = await Post.findById(req.params.id)
-        .populate('author', 'username')
-        .populate('community', 'name');
+        .populate('community', 'name')
+        .lean();
 
     if (!post) {
-       throw new ApiError(404,"post not found")
+        throw new ApiError(404, "Post not found");
+    }
+    if (post.isAnonymous) {
+        delete post.author;
     }
 
     return res.status(200).json(new ApiResponse(200, 'Post fetched successfully', post));
@@ -97,13 +127,11 @@ const updatePost = asyncHandler(async (req, res) => {
     const post = await Post.findById(req.params.id);
 
     if (!post) {
-        throw new ApiError(404,"post not found")
-        
+        throw new ApiError(404, "Post not found");
     }
 
     if (post.author.toString() !== req.user.id) {
-        throw new ApiError(403,"unauthorized request")
-
+        throw new ApiError(403, "Unauthorized request");
     }
 
     post.title = title || post.title;
@@ -117,11 +145,11 @@ const deletePost = asyncHandler(async (req, res) => {
     const post = await Post.findById(req.params.id);
 
     if (!post) {
-        throw new ApiError(404,"post not found")
+        throw new ApiError(404, "Post not found");
     }
 
     if (post.author.toString() !== req.user.id) {
-        throw new ApiError(403,"unauthorized request")
+        throw new ApiError(403, "Unauthorized request");
     }
 
     await post.deleteOne();
@@ -131,11 +159,11 @@ const deletePost = asyncHandler(async (req, res) => {
 
 
 
-
 export {
     createPost,
     getAllPosts,
     getPostById,
     updatePost,
     deletePost,
+    getGenericPosts
 }

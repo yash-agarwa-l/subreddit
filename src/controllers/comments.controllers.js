@@ -100,6 +100,13 @@ export const getAllComments = asyncHandler(async (req, res) => {
     if (!post) {
         throw new ApiError(404, "Post not found");
     }
+    let comments= post.comments;
 
-    return res.status(200).json(new ApiResponse(200, "Comments fetched", { comments: post.comments }));
+    comments.forEach(comment => {
+        if (comment.isAnonymous) {
+            delete comment.author;
+        }
+    });
+
+    return res.status(200).json(new ApiResponse(200, "Comments fetched", { comments: comments }));
 });
