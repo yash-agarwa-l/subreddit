@@ -17,6 +17,19 @@ const userSchema = new mongoose.Schema(
             trim: true, 
             index: true
         },
+        course:{
+            type: String,
+        },
+        branch:{
+            type:String,
+        },
+        year:{
+            type: Number,
+            enum:[1,2,3,4]
+        },
+        bio:{
+            type:String,
+        },
         refreshToken: {
             type: String
         },

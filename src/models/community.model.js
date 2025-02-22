@@ -15,6 +15,12 @@ const communitySchema=new mongoose.Schema({
         ref: "User",
         required: true
     },
+    posts:[
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Post"
+        }
+    ]
         
 },{
     timestamps:true

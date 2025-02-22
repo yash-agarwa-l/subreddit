@@ -68,6 +68,18 @@ export const deleteCommunity = asyncHandler(async (req, res) => {
     return res.status(200).json(new ApiResponse(200, "Community deleted"));
 });
 
+export const getCommunityByID = asyncHandler(async (req, res) => {
+    const { communityId } = req.params;
+    if(!communityId){
+        throw new ApiError(400, "Community ID is required");
+    }
+    const community = await Community.findById(communityId);
+    if (!community) {
+        throw new ApiError(404, "Community not found");
+        }
+    return res.status(200).json(new ApiResponse(200, "successful", { community }));
+})
+
 
 
 

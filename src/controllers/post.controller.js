@@ -4,55 +4,72 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 import { ApiError } from "../utils/apiError.js";
 import { s3Client } from "./picures.controllers.js";
+import { GetObjectCommand } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
-const createPost = asyncHandler(async (req, res) => {
-    const { title, description, communityId, imagekey } = req.body;
+ const createPost = asyncHandler(async (req, res) => {
+    const { title, description, postType, communityId, imageKeys, isAnonymous } = req.body;
     const userId = req.user._id;
 
-    if (!title || !description || !communityId) {
-        throw new ApiError(400, "All fields are required");
+    if (!title || !postType) {
+        throw new ApiError(400, "Title and post type are required");
     }
 
-    const community = await Community.findById(communityId);
-    if (!community) {
-        throw new ApiError(404, "Community not found");
+    let community = null;
+
+    if (postType === "community") {
+        if (!communityId) throw new ApiError(400, "Community ID is required for a community post");
+        
+        community = await Community.findById(communityId);
+        if (!community) throw new ApiError(404, "Community not found");
+
+
+    } else if (postType === "generic" && communityId) {
+        throw new ApiError(400, "Community ID should not be provided for a generic post");
     }
-
-    let imageUrl = null;
-
-    if (imagekey) {
+    let imageUrls = [];
+    if (imageKeys && Array.isArray(imageKeys)) {
         try {
-            const getCommand = new GetObjectCommand({
-                Bucket: process.env.BUCKET_NAME,
-                Key: `uploads/userUploads/${imagekey}`,
-            });
-
-            imageUrl = await getSignedUrl(s3Client, getCommand, { expiresIn: 3600 });
-
-            await User.findByIdAndUpdate(userId, { $set: { profileImage: imageUrl } });
+            imageUrls = await Promise.all(
+                imageKeys.map(async (key) => {
+                    const getCommand = new GetObjectCommand({
+                        Bucket: process.env.BUCKET_NAME,
+                        Key: `uploads/userUploads/${key}`,
+                    });
+                    return getSignedUrl(s3Client, getCommand, { expiresIn: 3600 });
+                })
+            );
         } catch (error) {
-            throw new ApiError(500, "Error generating signed URL for image");
+            throw new ApiError(500, "Error generating signed URLs for images");
         }
     }
 
     const post = await Post.create({
         title,
         description,
-        author: userId,
-        community: communityId,
-        imageUrl:imageUrl
+        postType,
+        community: postType === "community" ? communityId : null,
+        author: isAnonymous ? null : userId, 
+        imageUrl: imageUrls,
+        isAnonymous: !!isAnonymous,
     });
+
+    if (postType === "community" && community) {
+        community.posts.push(post._id);
+        await community.save();
+    }
 
     return res.status(201).json(
         new ApiResponse(201, "Post created", {
             post,
-            signedImage: {
-                fileName: imagekey,
-                url: imageUrl,
-            },
+            signedImages: imageUrls.map((url, index) => ({
+                fileName: imageKeys[index],
+                url,
+            })),
         })
     );
 });
+
 
 
 const getAllPosts = asyncHandler(async (req, res) => {
