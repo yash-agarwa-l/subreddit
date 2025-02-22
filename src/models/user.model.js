@@ -39,7 +39,13 @@ const userSchema = new mongoose.Schema(
         downvotedPosts:{
             type:mongoose.Schema.Types.ObjectId,
             ref:"Post"
-        }
+        },
+        communities:[
+            {
+                type:mongoose.Schema.Types.ObjectId,
+                ref:"Community"
+            }
+        ]
 
     },
     {

@@ -3,6 +3,7 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 import { ApiError } from "../utils/apiError.js";
 
+
 export const createCommunity = asyncHandler(async (req, res) => {
     const { name, description } = req.body;
 
@@ -65,4 +66,36 @@ export const deleteCommunity = asyncHandler(async (req, res) => {
     await community.deleteOne();
 
     return res.status(200).json(new ApiResponse(200, "Community deleted"));
+});
+
+
+
+
+export const joinCommunity = asyncHandler(async (req, res) => {
+    const { communityId } = req.params;
+
+    if (!req.user) {
+        throw new ApiError(401, "Unauthorized - Please log in");
+    }
+
+    const userId = req.user._id;
+
+    const community = await Community.findById(communityId);
+    if (!community) {
+        throw new ApiError(404, "Community not found");
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+        throw new ApiError(404, "User not found");
+    }
+
+    if (user.communities && user.communities.includes(communityId)) {
+        throw new ApiError(400, "User is already a member of this community");
+    }
+
+    user.communities.push(communityId);
+    await user.save();
+
+    return res.status(200).json(new ApiResponse(200, "Successfully joined community", { user }));
 });
