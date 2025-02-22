@@ -3,6 +3,7 @@ import {ApiError} from "../utils/apiError.js";
 import {ApiResponse} from "../utils/apiResponse.js";
 import {User} from "../models/user.model.js";
 import jwt from "jsonwebtoken";
+import {OAuth2Client} from "google-auth-library";
 
 const options={
     httpOnly:true,
@@ -33,6 +34,25 @@ const getAccessAndRefreshToken = async (userId) => {
         throw new ApiError(500, "Error generating tokens");
     }
 };
+
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+const signInUser=asyncHandler(async(req,res)=>{
+    const { idToken } = req.body;
+    const ticket = await client.verifyIdToken({
+      idToken,
+      audience: process.env.GOOGLE_CLIENT_ID, 
+    });
+    const payload = ticket.getPayload(); 
+
+
+    const user = {
+      email: payload.email,
+      fullName: payload.name,
+    };
+
+})
+
+
 
 
 const registerUser=asyncHandler(async(req,res)=>{
