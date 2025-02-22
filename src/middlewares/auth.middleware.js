@@ -13,7 +13,11 @@ const verifyJWT=asyncHandler(async(req,_,next)=>{
         }
     
         const decodedToken=jwt.verify(token,process.env.ACCESS_SECRET)
-        const user=await User.findById(decodedToken?._id).select("-password -refreshToken")
+        
+        const user=await User.findOne({
+            _id:decodedToken?._id,
+            googleId:decodedToken?.gid
+        }).select("-googleId -refreshToken")
         if(!user){
             throw new ApiError(401,"invalid token")
         }

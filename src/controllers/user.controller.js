@@ -36,94 +36,134 @@ const getAccessAndRefreshToken = async (userId) => {
 };
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
-const signInUser=asyncHandler(async(req,res)=>{
-    const { idToken } = req.body;
-    const ticket = await client.verifyIdToken({
-      idToken,
-      audience: process.env.GOOGLE_CLIENT_ID, 
-    });
-    const payload = ticket.getPayload(); 
+// const signInUser=asyncHandler(async(req,res)=>{
+//     const { idToken } = req.body;
+//     const ticket = await client.verifyIdToken({
+//       idToken,
+//       audience: process.env.GOOGLE_CLIENT_ID, 
+//     });
+//     const payload = ticket.getPayload(); 
 
 
-    const user = {
-      email: payload.email,
-      fullName: payload.name,
-    };
+//     const user = {
+//       email: payload.email,
+//       fullName: payload.name,
+//     };
+
+// })
+
+const googleSignInUser=asyncHandler(async(req,res)=>{
+
+    const {idtoken}=req.body;
+    if(!idtoken){
+        throw new ApiError(400,"Token required")
+    }
+    const ticket =await client.verifyIdToken({
+
+        idtoken,
+        audience:process.env.GOOGLE_CLIENT_ID
+    })
+    if(!ticket){
+        throw new ApiError(400,"verification failed")
+    }
+    try {
+        const payload=ticket.getPayload()
+        const{sub,email,name}=payload;
+    
+        let user=await User.findOne({googleId:sub})
+        if(!user){
+            user=await User.create({
+                email,
+                fullName:name,
+                googleId:sub
+
+            })
+        }
+        const {accessToken,refreshToken}=getAccessAndRefreshToken(user._id)
+        const loggedinUser=await User.findById(user._id).select("-refreshToken -googleId")
+
+        return res.json(200).cookie("accessToken",accessToken,options).cookie("refreshToken",refreshToken,options).json({
+            accessToken,refreshToken,user:loggedinUser
+        })
+    } catch (error) {
+        throw new ApiError(500,"something went wrong")
+        
+    }
 
 })
 
 
 
 
-const registerUser=asyncHandler(async(req,res)=>{
+// const registerUser=asyncHandler(async(req,res)=>{
 
-    const {fullName,username,email,password}=req.body
-    if(!username){
-        throw new ApiError(400,"All fields are required")
-    }
-    if(!fullName){
-        throw new ApiError(400,"All fields are required")
-    }
-    if(!email){
-        throw new ApiError(400,"All fields are required")
-    }
-    if(!password){
-        throw new ApiError(400,"All fields are required")
-    }
+//     const {fullName,username,email,password}=req.body
+//     if(!username){
+//         throw new ApiError(400,"All fields are required")
+//     }
+//     if(!fullName){
+//         throw new ApiError(400,"All fields are required")
+//     }
+//     if(!email){
+//         throw new ApiError(400,"All fields are required")
+//     }
+//     if(!password){
+//         throw new ApiError(400,"All fields are required")
+//     }
 
-   const existedUser= await User.findOne({
-        username
-    })
-    if(existedUser){
-        throw new ApiError(400,"user already exists")
-    }
+//    const existedUser= await User.findOne({
+//         username
+//     })
+//     if(existedUser){
+//         throw new ApiError(400,"user already exists")
+//     }
 
-    const user=await User.create({
-        fullName,
-        email,
-        password,
-        username
-    })
-    const createdUser= await User.findById(user._id).select("-password -refreshToken")
+//     const user=await User.create({
+//         fullName,
+//         email,
+//         password,
+//         username
+//     })
+//     const createdUser= await User.findById(user._id).select("-password -refreshToken")
 
-    if(!createdUser){
-        throw new ApiError(500,"something went wrong");
-    }
+//     if(!createdUser){
+//         throw new ApiError(500,"something went wrong");
+//     }
 
-    return res.status(200).json(new ApiResponse(200,"user registered",{createdUser}))
+//     return res.status(200).json(new ApiResponse(200,"user registered",{createdUser}))
 
-})
+// })
 
-const loginUser=asyncHandler(async(req,res)=>{
+// const loginUser=asyncHandler(async(req,res)=>{
 
-    const {username,email,password}=req.body
+//     const {username,email,password}=req.body
     
-    if(!username && !email){
-        throw new ApiError(400,"username or email required")
-    }
+//     if(!username && !email){
+//         throw new ApiError(400,"username or email required")
+//     }
 
-    const user=await User.findOne({
-        $or:[{username},{email}]
-    })
-    if(!user){
-        throw new ApiError(404,"user not found")
-    }
-    const isCorrect=await user.isPasswordCorrect(password)
-    if(!isCorrect){
-        throw new ApiError(401,"invalid")
-    }
+//     const user=await User.findOne({
+//         $or:[{username},{email}]
+//     })
+//     if(!user){
+//         throw new ApiError(404,"user not found")
+//     }
+//     const isCorrect=await user.isPasswordCorrect(password)
+//     if(!isCorrect){
+//         throw new ApiError(401,"invalid")
+//     }
 
-    const {accessToken,refreshToken}=await getAccessAndRefreshToken(user._id)
+//     const {accessToken,refreshToken}=await getAccessAndRefreshToken(user._id)
     
     
-    const loggedinUser=await User.findById(user._id).select("-password -refreshToken")
+//     const loggedinUser=await User.findById(user._id).select("-password -refreshToken")
 
-    res.status(200).cookie("accessToken",accessToken,options).cookie("refreshToken",refreshToken,options).json(new ApiResponse(200,"user logged in",{
-        user:loggedinUser,accessToken,refreshToken
-    }))
+//     res.status(200).cookie("accessToken",accessToken,options).cookie("refreshToken",refreshToken,options).json(new ApiResponse(200,"user logged in",{
+//         user:loggedinUser,accessToken,refreshToken
+//     }))
 
    
-})
+// })
 
 const logoutUser=asyncHandler(async (req,res)=> {
     await User.findByIdAndUpdate(
@@ -175,8 +215,9 @@ const refreshAccessToken=asyncHandler(async(req,res)=>{
 })
 
 export {
-    registerUser,
-    loginUser,
+    // registerUser,
+    // loginUser,
+    googleSignInUser,
     logoutUser,
     refreshAccessToken
 }

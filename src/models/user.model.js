@@ -33,7 +33,12 @@ const userSchema = new mongoose.Schema(
                 type:mongoose.Schema.Types.ObjectId,
                 ref:"Community"
             }
-        ]
+        ],
+        googleId:{
+            type:"String",
+            unique:true,
+            required:true
+        }
 
     },
     {
@@ -41,18 +46,18 @@ const userSchema = new mongoose.Schema(
     }
 )
 
-userSchema.pre("save", async function (next) { 
-    if (!this.isModified("password")) {
-        return next();
-    }
+// userSchema.pre("save", async function (next) { 
+//     if (!this.isModified("password")) {
+//         return next();
+//     }
 
-    this.password = await bcrypt.hash(this.password, 10);
-    next();
-});
+//     this.password = await bcrypt.hash(this.password, 10);
+//     next();
+// });
 
-userSchema.methods.isPasswordCorrect=async function(password){
-    return await bcrypt.compare(password,this.password)
-}
+// userSchema.methods.isPasswordCorrect=async function(password){
+//     return await bcrypt.compare(password,this.password)
+// }
 
 userSchema.methods.generateAccessToken=function(){
 
@@ -60,13 +65,13 @@ userSchema.methods.generateAccessToken=function(){
         {
 
             _id: this._id,
+            gId:this.googleId,
             email: this.email,
-            username: this.username,
             fullName: this.fullName
         },
         process.env.ACCESS_SECRET,
         {
-            expiresIn:process.env.ACCESS_EXPIRY|| "10d"
+            expiresIn:process.env.ACCESS_EXPIRY|| "1d"
         }
         
     )
@@ -78,11 +83,12 @@ userSchema.methods.generateRefreshToken=function(){
         {
 
             _id: this._id,
+            gid:this.googleId
         
         },
         process.env.REFRESH_SECRET,
         {
-            expiresIn:process.env.REFRESH_EXPIRY|| "2d"
+            expiresIn:process.env.REFRESH_EXPIRY|| "7d"
         }
     )
 }

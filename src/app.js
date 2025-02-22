@@ -13,6 +13,7 @@ import uploadRouter from "./routes/upload.route.js";
 import commentRouter from "./routes/comment.route.js";
 import communityRouter from "./routes/community.route.js";
 
+
 app.use("/api/users",userRouter)
 app.use("/api/posts",postRouter)
 app.use("/api/upload",uploadRouter)
